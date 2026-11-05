@@ -1,0 +1,182 @@
+#reading-notebook-view .reading-notebook-layout {
+    gap: 14px;
+    padding: 18px 18px 12px;
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+}
+
+#reading-notebook-view .reading-notebook-topbar {
+    align-items: center;
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+#reading-notebook-view .reading-notebook-title {
+    font-size: 1.35rem;
+}
+
+#reading-notebook-view .reading-notebook-subtitle {
+    margin-top: 2px;
+    font-size: 0.82rem;
+}
+
+#reading-notebook-view .reading-notebook-surface {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 22px;
+}
+
+#reading-notebook-view .reading-notebook-toolbar {
+    gap: 10px;
+    padding: 10px 12px;
+}
+
+#reading-notebook-view .reading-notebook-tabs {
+    flex: 0 0 auto;
+}
+
+#reading-notebook-view .shui-segmented-btn[aria-pressed="true"] {
+    background: rgba(255, 255, 255, 0.72);
+    border-color: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+#reading-notebook-view .reading-notebook-search {
+    max-width: none;
+    background: rgba(255, 255, 255, 0.28);
+}
+
+#reading-notebook-view .reading-notebook-search input {
+    min-height: 36px;
+}
+
+#reading-notebook-view .reading-notebook-toolbar select {
+    min-height: 36px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.28);
+    color: var(--shui-text-strong, #0f172a);
+    padding: 0 12px;
+    backdrop-filter: blur(16px);
+}
+
+#reading-notebook-view .reading-notebook-list {
+    padding: 0 8px 8px;
+}
+
+#reading-notebook-view .nb-head,
+#reading-notebook-view .reading-notebook-entry {
+    display: grid;
+    grid-template-columns: minmax(128px, 180px) minmax(0, 1.5fr) minmax(120px, 0.9fr) auto;
+    gap: 8px 12px;
+    align-items: center;
+}
+
+#reading-notebook-view .nb-head {
+    padding: 4px 12px 8px;
+    color: var(--shui-text-muted, #64748b);
+    font-size: 0.75rem;
+}
+
+#reading-notebook-view .reading-notebook-entry {
+    margin: 0;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 16px;
+}
+
+#reading-notebook-view .reading-notebook-entry:hover {
+    background: rgba(255, 255, 255, 0.34);
+}
+
+#reading-notebook-view .nb-word {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+#reading-notebook-view .nb-word h3 {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 1rem;
+}
+
+#reading-notebook-view .nb-gloss {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--shui-text-strong, #0f172a);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#reading-notebook-view .nb-gloss:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+#reading-notebook-view .reading-notebook-entry__meta {
+    margin: 0;
+    min-width: 0;
+}
+
+#reading-notebook-view .reading-notebook-entry__meta span {
+    max-width: 100%;
+    background: rgba(255, 255, 255, 0.28);
+}
+
+#reading-notebook-view .nb-icon {
+    min-height: 28px;
+    padding: 2px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.22);
+    color: var(--shui-text-strong, #0f172a);
+    font: inherit;
+    font-size: 0.78rem;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+}
+
+#reading-notebook-view .nb-icon--danger {
+    color: #9c3535;
+}
+
+#reading-notebook-view .notebook-definition {
+    grid-column: 1 / -1;
+    margin: 0;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.42);
+    backdrop-filter: blur(16px);
+}
+
+@media (max-width: 768px) {
+    #reading-notebook-view .nb-head {
+        display: none;
+    }
+
+    #reading-notebook-view .reading-notebook-entry {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    #reading-notebook-view .nb-gloss,
+    #reading-notebook-view .reading-notebook-entry__meta {
+        grid-column: 1 / -1;
+    }
+
+    #reading-notebook-view .reading-notebook-entry__meta {
+        white-space: normal;
+    }
+}

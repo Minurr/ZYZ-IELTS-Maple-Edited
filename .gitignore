@@ -1,0 +1,20 @@
+# Local data and private question sources
+.env*
+*.sqlite3
+*.db
+*.gz
+*.zip
+*.pdf
+*.mp3
+*.mp4
+ListeningPractice/
+ReadingPractice/
+assets/generated/reading-exams/*
+!assets/generated/reading-exams/reading-practice-unified.html
+assets/generated/listening-exams/*
+!assets/generated/listening-exams/listening-practice-unified.html
+assets/generated/reading-explanations/
+assets/generated/listening-translations*.json
+assets/wordlists/
+node_modules/
+__pycache__/

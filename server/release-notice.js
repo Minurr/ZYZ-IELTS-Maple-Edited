@@ -1,0 +1,1 @@
+/* The Safari submit notice is retired and must not pop up for anyone. */
