@@ -278,9 +278,31 @@
         try { overlay.requestFullscreen?.()?.catch(() => {}); } catch (_) {}
         loadPassage();
     }
-    const suiteButton = node('button', '开始听力套题 · Part 1–4', 'btn');
+    const suiteButton = node('button', '听力套题', 'shui-glass-btn');
     suiteButton.type = 'button';
-    assigned.append(suiteButton);
+    const categoryGrid = document.getElementById('category-overview');
+    function placeListeningSuite() {
+        const reading = categoryGrid.querySelector('[data-action="start-suite-mode"]');
+        if (!reading) return;
+        const heading = Array.from(categoryGrid.querySelectorAll('.overview-section-title')).find(el => el.textContent.trim().startsWith('听力'));
+        const inListening = heading && heading.parentElement !== categoryGrid;
+        const target = inListening ? heading.parentElement : reading.parentElement;
+        const label = inListening ? '套题模式' : '听力套题';
+        if (suiteButton.parentElement === target && suiteButton.getAttribute('aria-label') === label) return;
+        suiteButton.className = reading.className;
+        suiteButton.style.cssText = reading.style.cssText;
+        suiteButton.setAttribute('aria-label', label);
+        suiteButton.replaceChildren(...Array.from(reading.children, child => child.cloneNode(true)));
+        const caption = suiteButton.querySelector('span:last-child');
+        if (caption) caption.textContent = label;
+        else suiteButton.append(label);
+        if (inListening) target.append(suiteButton);
+        else reading.after(suiteButton);
+    }
+    if (categoryGrid) {
+        placeListeningSuite();
+        new MutationObserver(placeListeningSuite).observe(categoryGrid, {childList: true, subtree: true});
+    }
     suiteButton.onclick = async () => {
         if (sitting || suiteButton.disabled) return;
         suiteButton.disabled = true;
