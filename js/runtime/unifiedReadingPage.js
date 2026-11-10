@@ -1007,7 +1007,33 @@
         }
     }
 
+    let annotationSyncTimer = null;
+    let annotationSyncReason = '';
+
+    function scheduleReadingAnnotation(reason) {
+        annotationSyncReason = reason || 'highlight';
+        if (annotationSyncTimer) global.clearTimeout(annotationSyncTimer);
+        // Paint the highlight first. The draft snapshot walks the whole passage,
+        // so it must not run inside the click that starts the next highlight.
+        annotationSyncTimer = global.setTimeout(() => {
+            annotationSyncTimer = null;
+            const next = annotationSyncReason || 'highlight';
+            annotationSyncReason = '';
+            syncReadingAnnotation(next);
+        }, 350);
+    }
+
+    function flushScheduledReadingAnnotation() {
+        if (!annotationSyncTimer) return;
+        global.clearTimeout(annotationSyncTimer);
+        annotationSyncTimer = null;
+        const next = annotationSyncReason || 'highlight';
+        annotationSyncReason = '';
+        syncReadingAnnotation(next);
+    }
+
     function applySelectionHighlight(kind = 'highlight') {
+        getReviewHighlightDictionary()?.close?.();
         const toolbar = document.getElementById('selbar');
         if (!canEditReadingNotes()) {
             if (toolbar) toolbar.style.display = 'none';
@@ -1024,7 +1050,7 @@
             if (toolbar) toolbar.style.display = 'none';
             interaction.lastRange = null;
             interaction.currentHighlightNode = null;
-            syncReadingAnnotation('highlight');
+            scheduleReadingAnnotation('highlight');
             return;
         }
         const span = document.createElement('span');
@@ -1043,7 +1069,7 @@
             const note = ensureNoteForHighlight(span, normalizeNoteText(span.textContent), { sync: false });
             if (note) openNoteEditor(note.id, { anchorNode: span });
         }
-        syncReadingAnnotation('highlight');
+        scheduleReadingAnnotation('highlight');
     }
 
     function removeSelectionHighlight() {
@@ -1074,7 +1100,7 @@
         interaction.lastRange = null;
         interaction.currentHighlightNode = null;
         if (removedNoteId) deleteNote(removedNoteId, { sync: false });
-        syncReadingAnnotation('unhighlight');
+        scheduleReadingAnnotation('unhighlight');
     }
 
     function attachSelectionHighlightToolbar() {
@@ -1176,6 +1202,9 @@
             getContext: getReviewDictionaryContext,
             postMessage
         });
+        if (typeof global.ensureReadingDictionary === 'function') {
+            global.ensureReadingDictionary().catch(() => {});
+        }
     }
 
     function closeReviewHighlightDictionary() {
@@ -6510,7 +6539,7 @@
                 controls.style.background = 'var(--bg-color, #fff)';
             }
         }
-        dom.exitBtn.textContent = state.submitted || state.reviewMode ? '退出' : '退出且不保存';
+        dom.exitBtn.textContent = '退出';
         dom.exitBtn.disabled = state.submissionStatus === 'submitting' || !!state.timingSubmitPending || !!state.exiting;
 
     }
@@ -8476,23 +8505,55 @@
         global.alert('退出尚未完成，请重试。当前题目仍保留。');
     }
 
+    function ensureExitConfirm() {
+        let panel = document.getElementById('exit-confirm');
+        if (panel) return panel;
+        panel = document.createElement('div');
+        panel.id = 'exit-confirm';
+        panel.hidden = true;
+        panel.setAttribute('role', 'alertdialog');
+        panel.setAttribute('aria-labelledby', 'exit-confirm-text');
+        panel.innerHTML = '<p id="exit-confirm-text">退出后，本次答案和草稿不会保存。</p><button type="button" data-exit-confirm="cancel">取消</button><button type="button" data-exit-confirm="ok">确认退出</button>';
+        document.body.appendChild(panel);
+        panel.addEventListener('click', (event) => {
+            const action = event.target instanceof HTMLElement
+                ? event.target.closest('[data-exit-confirm]')?.dataset.exitConfirm
+                : '';
+            if (action === 'cancel') {
+                panel.hidden = true;
+                return;
+            }
+            if (action === 'ok') {
+                panel.hidden = true;
+                beginDiscardExit();
+            }
+        });
+        return panel;
+    }
+
+    function beginDiscardExit() {
+        if (state.exiting || state.submissionStatus === 'submitting' || state.timingSubmitPending || isSubmissionUnconfirmed()) return;
+        state.exiting = true;
+        stopReadingDraftSync();
+        stopSimulationDraftSync();
+        setExitButtonVisible(true);
+        if (dom.exitBtn) dom.exitBtn.textContent = '正在退出…';
+        if (canSubmitDirectly() && (!hasLivePracticeHost() || state.independentPractice)) {
+            clearOwnIndependentRecovery(state.sessionId).then(completeExitRequest, failExitRequest);
+            return;
+        }
+        exitRequestTimer = global.setTimeout(failExitRequest, 45000);
+        recoverDetachedExit().then(handled => {
+            if (!handled && !postMessage('PRACTICE_DISCARD_REQUEST', {})) failExitRequest();
+        });
+    }
+
     function handleExitClick() {
         if (state.exiting || state.submissionStatus === 'submitting' || state.timingSubmitPending || isSubmissionUnconfirmed()) return;
         if (!state.submitted && !state.reviewMode) {
-            if (!global.confirm('退出并放弃本次练习？本次答案和草稿将不保存。')) return;
-            state.exiting = true;
-            stopReadingDraftSync();
-            stopSimulationDraftSync();
-            setExitButtonVisible(true);
-            if (dom.exitBtn) dom.exitBtn.textContent = '正在退出…';
-            if (canSubmitDirectly() && (!hasLivePracticeHost() || state.independentPractice)) {
-                clearOwnIndependentRecovery(state.sessionId).then(completeExitRequest, failExitRequest);
-                return;
-            }
-            exitRequestTimer = global.setTimeout(failExitRequest, 45000);
-            recoverDetachedExit().then(handled => {
-                if (!handled && !postMessage('PRACTICE_DISCARD_REQUEST', {})) failExitRequest();
-            });
+            const panel = ensureExitConfirm();
+            panel.hidden = false;
+            panel.querySelector('[data-exit-confirm="ok"]')?.focus();
             return;
         }
         if (canSubmitDirectly() && !hasLivePracticeHost()) { completeExitRequest(); return; }
@@ -9009,6 +9070,7 @@
         const flush = (reason) => {
             if (state.exiting) return;
             try {
+                flushScheduledReadingAnnotation();
                 // 先把编辑器里未提交的笔记立刻刷出：review 页面 flushReadingDraftOnLifecycle
                 // 会因 canSyncReadingDraft 直接 no-op，笔记只能靠 450ms 防抖提交，页面在
                 // 防抖触发前关闭/隐藏就会丢失 READING_ANNOTATION_SYNC。这里同步触发一次，

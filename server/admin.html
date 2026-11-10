@@ -14,8 +14,22 @@ aside{width:188px;padding:14px 10px 12px;gap:0;background:#102e28}main{margin-le
 </style>
 <style>
 /* 92fokjwdsadboi32rdfw */
+@font-face{font-family:"Geist Pixel Square";src:url("/assets/fonts/geist-pixel/GeistPixel-Square.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"Geist Pixel Grid";src:url("/assets/fonts/geist-pixel/GeistPixel-Grid.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"Geist Pixel Circle";src:url("/assets/fonts/geist-pixel/GeistPixel-Circle.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"Geist Pixel Triangle";src:url("/assets/fonts/geist-pixel/GeistPixel-Triangle.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"Geist Pixel Line";src:url("/assets/fonts/geist-pixel/GeistPixel-Line.woff2") format("woff2");font-display:swap}
 aside.teacher-rail{background:#fff;color:#26352f;border-right:1px solid #dde3df;padding:24px 12px 16px}
-.teacher-rail .side-brand{display:flex;align-items:center;padding:0 8px 22px;border-bottom:1px solid #e4e9e6}
+.teacher-rail .side-brand{display:flex;flex-direction:column;align-items:stretch;gap:4px;padding:2px 4px 18px;border-bottom:1px solid #e4e9e6}
+.teacher-rail .side-brand-row{display:flex;align-items:center}
+.teacher-rail .rail-pixel{margin:0 0 6px;display:flex;align-items:baseline;flex-wrap:nowrap;font-size:18px;line-height:1;letter-spacing:0;color:#000;font-weight:500}
+.teacher-rail .rail-pixel .px{font-size:18px;line-height:1;color:#000;font-weight:500;-webkit-text-stroke:.045em currentColor;paint-order:stroke fill}
+.teacher-rail .rail-pixel .px[data-font="0"]{font-family:"Geist Pixel Square",ui-monospace,monospace}
+.teacher-rail .rail-pixel .px[data-font="1"]{font-family:"Geist Pixel Grid",ui-monospace,monospace}
+.teacher-rail .rail-pixel .px[data-font="2"]{font-family:"Geist Pixel Circle",ui-monospace,monospace}
+.teacher-rail .rail-pixel .px[data-font="3"]{font-family:"Geist Pixel Triangle",ui-monospace,monospace}
+.teacher-rail .rail-pixel .px[data-font="4"]{font-family:"Geist Pixel Line",ui-monospace,monospace}
+.teacher-rail .rail-pixel .px-gap{width:.28em;flex:none}
 .teacher-rail .side-brand strong{color:#20342b;font-size:18px;line-height:1.4;font-weight:650;letter-spacing:0}
 .teacher-rail #sideNav{gap:2px}
 .teacher-rail .side-label{margin:22px 9px 5px;color:#66756d;font-size:12px;font-weight:500;letter-spacing:0}
@@ -41,20 +55,26 @@ aside.teacher-rail{padding:8px 12px;border-bottom:1px solid #d9e2dd}
 #navPassage{--nav-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M5 3h10l4 4v14H5zM9 11h6m-6 4h6'/%3E%3C/svg%3E")}
 #navListeningPassage{--nav-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M3 10v4m4-7v10m5-14v18m5-14v10m4-7v4'/%3E%3C/svg%3E")}
 #navExams{--nav-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M4 6h16v15H4zM8 3v5m8-5v5M4 11h16m-12 5 2 2 4-4'/%3E%3C/svg%3E")}
+#navWriting{--nav-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M4 20h4l10-10-4-4L4 16zM14 6l4 4'/%3E%3C/svg%3E")}
 #subtitle:empty{display:none}</style></head><body>
-<aside class="teacher-rail"><div class="side-brand"><strong>教师工作台</strong><button class="nav-toggle" type="button" aria-expanded="false" aria-controls="sideNav">导航</button></div><nav id="sideNav" aria-label="工作台"><div class="side-label">班级管理</div><button id="overview" type="button">年级与班级</button><div class="side-label">学情分析</div><button id="navReadingTypes" type="button" title="阅读题型正确率">阅读题型</button><button id="navListeningTypes" type="button" title="听力题型正确率">听力题型</button><button id="navPassage" type="button" title="阅读各题正确率">阅读各题</button></nav><div class="side-links"><a href="/admin/feedback">问题反馈</a><a href="/">返回练习网站</a></div></aside><script>
+<aside class="teacher-rail"><div class="side-brand"><p class="rail-pixel" aria-label="sample_school IELTS"><span class="px" data-font="0">S</span><span class="px" data-font="1">C</span><span class="px" data-font="2">C</span><span class="px" data-font="3">S</span><span class="px" data-font="4">C</span><span class="px-gap"></span><span class="px" data-font="0">I</span><span class="px" data-font="1">E</span><span class="px" data-font="2">L</span><span class="px" data-font="3">T</span><span class="px" data-font="4">S</span></p><div class="side-brand-row"><strong>教师工作台</strong><button class="nav-toggle" type="button" aria-expanded="false" aria-controls="sideNav">导航</button></div></div><nav id="sideNav" aria-label="工作台"><div class="side-label">班级管理</div><button id="overview" type="button">年级与班级</button><div class="side-label">学情分析</div><button id="navReadingTypes" type="button" title="阅读题型正确率">阅读题型</button><button id="navListeningTypes" type="button" title="听力题型正确率">听力题型</button><button id="navPassage" type="button" title="阅读各题正确率">阅读各题</button></nav><div class="side-links"><a href="/admin/feedback">问题反馈</a><a href="/">返回练习网站</a></div></aside><script>
 (() => {
  const rail=document.querySelector('.teacher-rail'), toggle=rail.querySelector('.nav-toggle');
+ const letters=[...rail.querySelectorAll('.rail-pixel .px')];
+ let pixelMs=0;
+ const paintPixel=()=>letters.forEach((letter,index)=>{const elapsed=Math.max(0,pixelMs-index*200);letter.dataset.font=String((index+Math.floor(elapsed/340))%5);});
+ paintPixel();
+ setInterval(()=>{pixelMs+=50;paintPixel();},50);
+ rail.querySelector('.rail-pixel').addEventListener('pointerenter',()=>{pixelMs=0;paintPixel();});
  function expand(open){rail.classList.toggle('nav-open',open);toggle.setAttribute('aria-expanded',String(open));}
  toggle.onclick=()=>expand(toggle.getAttribute('aria-expanded')==='false');
  rail.querySelector('nav').addEventListener('click',event=>{if(event.target.closest('button'))expand(false);});
 })();
 </script>
 <main><nav id="studentNav" hidden style="margin-bottom:18px"><button id="backToList">← 返回学生名单</button> <span id="studentCrumb"></span></nav><header><div><div class="eyebrow">LEARNING ANALYTICS</div><h1 id="title">学生学习概览</h1><p id="subtitle"></p></div><div class="toolbar"><select id="range" aria-label="统计时间范围"><option value="7">最近 7 天</option><option value="30" selected>最近 30 天</option><option value="90">最近 90 天</option><option value="0">全部时间</option></select><button id="refresh">刷新</button><button id="export">导出表格</button></div></header>
-<section class="panel" style="margin-top:18px"><div class="toolbar"><label>学校 <select id="schoolFilter" aria-label="筛选学校"><option value="">全部学校</option></select></label><label>年级 <select id="gradeFilter" aria-label="筛选年级"><option value="">全部年级</option><option>Pre</option><option>G10</option><option>G11</option><option>G12</option><option>English Dept.</option></select></label><label>班级 <select id="classFilter" aria-label="筛选班级"><option value="">全部班级</option><option value="1">1 班</option><option value="2">2 班</option><option value="3">3 班</option><option value="4">4 班</option><option value="5">5 班</option><option value="6">6 班</option><option value="7">7 班</option><option value="8">8 班</option><option value="9">9 班</option></select></label><button id="resetScope">查看全部</button></div><p id="scopeNote"></p></section><div id="overviewView"><div id="status" role="status" aria-live="polite"></div><div id="cards" class="cards"></div>
+<div id="scopePanel" hidden><div class="toolbar"><label>学校 <select id="schoolFilter" aria-label="筛选学校"><option value="">全部学校</option></select></label><label>年级 <select id="gradeFilter" aria-label="筛选年级"><option value="">全部年级</option><option>Pre</option><option>G10</option><option>G11</option><option>G12</option><option>English Dept.</option></select></label><label>班级 <select id="classFilter" aria-label="筛选班级"><option value="">全部班级</option><option value="1">1 班</option><option value="2">2 班</option><option value="3">3 班</option><option value="4">4 班</option><option value="5">5 班</option><option value="6">6 班</option><option value="7">7 班</option><option value="8">8 班</option><option value="9">9 班</option></select></label><button id="resetScope">查看全部</button></div><p id="scopeNote"></p></div><div id="overviewView"><div id="status" role="status" aria-live="polite"></div><div id="cards" class="cards"></div>
 <div class="grid"><section class="panel"><h2 id="trendTitle">全班练习趋势</h2><small>柱形：练习次数　绿线：正确率（0–100%） · 日期按北京时间</small><div id="trend"></div></section><section class="panel"><h2>题型错题分布</h2><small>已记录的错题数量；不等同于各题型错误率。</small><div id="weak"></div></section></div>
 <div id="moreCards" class="cards"></div><div class="grid"><section class="panel"><h2>单次练习正确率分布</h2><small>按所选时间范围；无题数记录不参与分布，区间左闭右开，最后一档含 100%。</small><div id="scoreBars"></div></section><section class="panel"><h2 id="engagementTitle">学生练习次数分布</h2><small id="engagementNote">按所选时间范围统计，包含未练习账号。</small><div id="engagementBars"></div></section></div><section class="panel"><div class="toolbar"><h2 id="listTitle">学生名单</h2><div class="toolbar"><label id="sortControls">排序 <select id="studentSort" aria-label="学生排序"><option value="name">账号名称</option><option value="accuracy">正确率</option><option value="records">练习次数</option><option value="totalQuestions">作答题数</option><option value="duration">累计用时</option><option value="lastPractice">最近练习</option></select> <select id="sortDirection" aria-label="排序方向"><option value="asc">升序</option><option value="desc">降序</option></select></label><input id="search" placeholder="搜索学生账号" aria-label="搜索学生或题目"></div></div><div id="table" class="table"></div><div class="bottom"><small id="pageInfo"></small><button id="prev">上一页</button><button id="next">下一页</button></div></section>
-<p id="footnote">统计来自已提交的练习，不包含未提交草稿；“有练习学生”不代表当前在线。无日期记录仅计入“全部时间”。</p>
 <section class="panel" id="extra" hidden></section></div>
 <section id="chartView" hidden><p id="classChartNote">选择示例学校的年级后，每个班单独列出正确率。</p><div class="toolbar" id="passageToolbar" hidden><label>阅读篇目 <select id="passagePick" aria-label="选择阅读篇目"><option value="">先选择年级</option></select></label></div><div id="chartBoard"></div></section>
 </main><div id="navigationLoading" role="status" hidden style="position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:100020;background:#143d33;color:white;padding:12px 20px;border-radius:12px;box-shadow:0 8px 28px #143d3328">正在加载…</div><dialog id="answers"><header><h2 id="detailTitle">作答明细</h2><button id="close">关闭</button></header><div id="answerBody"></div></dialog>
@@ -70,7 +90,7 @@ function inRange(d){const from=cutoff();return !from||!!d&&d>=from;}
 function records(){return (student?.practice||[]).filter(r=>inRange(day(r))).sort((a,b)=>day(b).localeCompare(day(a)));}
 function schoolKey(u){return u.school==='sample_school'?'sample_school':u.school==='other'?'other:'+u.schoolName:'missing';}
 function profileLabel(u){return [u.schoolName||'未补充学校',u.grade,u.className?u.className+' 班':''].filter(Boolean).join(' · ');}
-function schoolOptions(){const previous=$('schoolFilter').value,options=new Map([['','全部学校'],['sample_school','示例学校'],['missing','未补充学校']]);for(const u of users)if(u.school==='other')options.set(schoolKey(u),u.schoolName);$('schoolFilter').replaceChildren(...[...options].map(([value,label])=>{const e=node('option',label);e.value=value;return e;}));$('schoolFilter').value=options.has(previous)?previous:'';}
+function schoolOptions(){const previous=$('schoolFilter').value,options=new Map([['','全部学校'],['sample_school','示例学校（sample_school）'],['missing','未补充学校']]);for(const u of users)if(u.school==='other')options.set(schoolKey(u),u.schoolName);$('schoolFilter').replaceChildren(...[...options].map(([value,label])=>{const e=node('option',label);e.value=value;return e;}));$('schoolFilter').value=options.has(previous)?previous:'';}
 function cohort(){const school=$('schoolFilter').value,grade=$('gradeFilter').value,cl=$('classFilter').value;return users.filter(u=>(!school||schoolKey(u)===school)&&(!grade||u.grade===grade)&&(!cl||u.className===cl));}
 function scopeControls(){const sample_school=$('schoolFilter').value==='sample_school';if(!sample_school){$('gradeFilter').value='';$('classFilter').value='';}if($('gradeFilter').value==='Pre'||$('gradeFilter').value==='English Dept.')$('classFilter').value='';$('schoolFilter').disabled=!!student;$('gradeFilter').disabled=!!student||!sample_school;$('classFilter').disabled=!!student||!sample_school||$('gradeFilter').value==='Pre'||$('gradeFilter').value==='English Dept.';$('scopeNote').textContent=student?profileLabel(student)+'；返回学生名单可恢复原来的筛选和位置。':`当前范围 ${cohort().length} 个账号；汇总、图表和导出按此范围统计。`;}
 for(const id of ['schoolFilter','gradeFilter','classFilter'])$(id).onchange=()=>{if(id==='schoolFilter'){$('gradeFilter').value='';$('classFilter').value='';}if(id==='gradeFilter')$('classFilter').value='';page=0;render();};
@@ -97,7 +117,7 @@ async function load(id=null,options={}){
  try{
   const r=await fetch('/api/admin/data'+(id?'?user='+encodeURIComponent(id):''),{headers:{'X-IELTS-User':IELTS_ACCOUNT.id},signal:controller.signal});
   const data=await r.json();if(!r.ok)throw Error(data.error||'加载失败');if(seq!==requestId)return;
-  if(id){if(!data.users?.[0])throw Error('学生不存在');student=data.users[0];}
+  if(id){if(!data.users?.[0])throw Error('学生不存在');student=data.users[0];chartMode='';}
   else{users=data.users;student=null;schoolOptions();}
   if(changing){page=0;$('search').value='';}
   if(!id&&listState&&changing)restoreList(listState);
@@ -132,4 +152,5 @@ function openChart(mode){chartMode=mode;if(student)return returnToList();render(
 $('navReadingTypes').onclick=()=>openChart('reading');$('navListeningTypes').onclick=()=>openChart('listening');$('navPassage').onclick=()=>openChart('passage');$('passagePick').onchange=()=>{if(chartMode==='passage'&&classChartData)paintCurrentChart();};
 </script><script>
 (function(){const panel=document.getElementById('listTitle').closest('section');panel.id='studentListPanel';document.getElementById('cards').after(panel);document.getElementById('overview').textContent='年级与班级';})();
-</script><script src="/js/teacherClassHome.js?v=20261103-class-home-3&release=20261104-cache55"></script><script src="/js/teacherGradeCharts.js?v=20261104-admin61&release=20261104-cache55"></script><script src="/js/teacherExams.js?v=20261104-exam-charts-71&release=20261104-exam-charts-71"></script></body></html>
+</script><script src="/js/teacherClassHome.js?v=20261106-student-visibility&release=20261106-student-visibility"></script><script src="/js/teacherGradeCharts.js?v=20261104-admin61&release=20261104-cache55"></script><script src="/js/teacherExams.js?v=20261106-writing1&release=20261106-writing1"></script>
+<script src="/js/teacherWriting.js?v=20261107-writing19"></script></body></html>

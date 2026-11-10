@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>IELTS 写作</title>
+<link rel="stylesheet" href="/assets/generated/writing/writing-practice.css?v=20261108-submit-view">
+</head>
+<body>
+<header class="header">
+    <div class="header-left">
+        <div class="ielts-brand">IELTS</div>
+        <div class="candidate-details">
+            <div class="candidate-id" id="candidate-id"></div>
+            <div id="timer" title="点击启停">00:00</div>
+        </div>
+    </div>
+    <div class="header-right">
+        <button class="header-btn" id="settings-btn" type="button" aria-label="Options" aria-controls="settings-panel" aria-expanded="false">
+            <svg class="header-icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+    </div>
+</header>
+
+<div class="sub-header-bar">
+    <div id="sub-header-part">Writing</div>
+    <div id="sub-header-instruction">Write your answer in the box on the right.</div>
+</div>
+
+<div id="settings-panel" role="dialog" aria-modal="true" aria-labelledby="options-title">
+    <header class="options-header">
+        <h2 id="options-title">Options</h2>
+        <button id="options-close-btn" class="options-close-button" type="button" aria-label="Close options">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+    </header>
+    <main class="options-content">
+        <div class="settings-section">
+            <h3 class="settings-title">字号调整</h3>
+            <div class="settings-options">
+                <button class="settings-option" data-size="small" type="button">小</button>
+                <button class="settings-option active" data-size="normal" type="button">中</button>
+                <button class="settings-option" data-size="large" type="button">大</button>
+            </div>
+        </div>
+        <div class="settings-section">
+            <h3 class="settings-title">背景颜色</h3>
+            <div class="settings-options">
+                <button class="settings-option active" data-mode="light" type="button">浅色</button>
+                <button class="settings-option" data-mode="dark" type="button">深色</button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div class="shell">
+    <section class="pane" id="left" tabindex="0">
+        <h1 id="task-title">Loading</h1>
+        <p id="task-prompt"></p>
+        <img id="task-image" alt="Writing figure" hidden>
+        <aside class="wr-feedback" id="feedback-box" hidden>
+            <h2>Teacher feedback</h2>
+            <p class="wr-score-line" id="feedback-scores"></p>
+            <p id="feedback-comment"></p>
+        </aside>
+    </section>
+    <div id="divider" role="separator" aria-orientation="vertical" aria-label="调整题目与作答宽度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0"></div>
+    <section class="pane" id="right" tabindex="0">
+        <label class="sr-only" for="essay">Essay</label>
+        <div class="wr-draft-box" id="draft-box">
+            <textarea id="essay" spellcheck="true" placeholder="Write your essay here."></textarea>
+        </div>
+        <div class="wr-wordcount" id="wordcount-line"><span id="word-count">0</span> 词 <span id="word-note"></span></div>
+        <div id="essay-view" hidden></div>
+    </section>
+</div>
+
+<div class="practice-nav">
+    <div class="part-nav-section active">
+        <div class="part-nav-info">
+            <div class="part-nav-name" id="footer-part">Writing</div>
+            <div class="part-nav-status" id="footer-min"></div>
+        </div>
+    </div>
+    <div class="nav-controls-right">
+        <button id="exit-btn" type="button">Exit</button>
+        <button id="submit-btn" type="button" title="Submit" aria-label="Submit">
+            <svg class="submit-btn-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        </button>
+    </div>
+</div>
+
+<script src="/js/writingPractice.js?v=20261108-submit-view"></script>
+</body>
+</html>

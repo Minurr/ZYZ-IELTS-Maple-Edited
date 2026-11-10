@@ -123,6 +123,7 @@
     applyChartView = function () {
         originalChart(); const active = showHome && !student && !chartMode;
         home.hidden = !active; back.hidden = active || !!student;
+        detailGrid.hidden = active || !!chartMode;
         const showOnline = !active && !student && !chartMode && !!selected;
         onlinePanel.hidden = !showOnline; detailGrid.classList.toggle('with-online', showOnline);
         if (showOnline) paintOnline();

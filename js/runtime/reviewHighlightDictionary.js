@@ -320,13 +320,18 @@
         if (!getLookupService() && typeof global.ensureReadingDictionary === 'function') {
             activeLookup = null;
             bubble.textContent = '正在加载词典…';
+            bubble.style.pointerEvents = 'none';
             positionBubble(bubble, highlight);
             global.ensureReadingDictionary().then(() => {
                 if (activeHighlight === highlight && highlight.isConnected && isEnabled()) openBubble(highlight);
             }).catch(() => {
-                if (activeHighlight === highlight) bubble.textContent = '词典加载失败，请再次点击生词重试。';
+                if (activeHighlight === highlight) {
+                    bubble.style.pointerEvents = '';
+                    bubble.textContent = '词典加载失败，请再次点击生词重试。';
+                }
             });
         } else {
+            bubble.style.pointerEvents = '';
             activeLookup = lookupTerm(term);
             bubble.innerHTML = renderLookup(activeLookup);
             positionBubble(bubble, highlight);

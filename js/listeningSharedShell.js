@@ -38,16 +38,20 @@
             $('ls-timer').onclick=function(){mounted.options.toggleTimer();};
             $('ls-exit').onclick=function(){if(mounted.saved){try{global.close();}catch(_){}global.location.replace('/');return;}mounted.options.exit();};
             $('ls-notes').onclick=function(){var b=findAction('notes');if(b)b.click();else tell('这道题没有笔记');};
-            $('ls-transcript').onclick=function(){var b=findAction('transcript');if(b)b.click();else tell('这道题没有原文');};
+            $('ls-transcript').onclick=function(){if(mounted.options.examListening)return;var b=findAction('transcript');if(b)b.click();else tell('这道题没有原文');};
             $('ls-reset').onclick=function(){var b=findAction('reset');if(b)b.click();else clearLocalAnswers();};
             $('ls-font').onchange=function(){var d=mounted.frame.contentDocument;d.body.classList.remove('font-regular','font-large','font-xlarge');d.body.classList.add('font-'+this.value);d.documentElement.style.fontSize={regular:'16px',large:'18px',xlarge:'20px'}[this.value];};
             $('ls-play').onclick=function(){var a=currentAudio();if(!a){tell('未找到这道题的音频');return;}if(a.paused){var p=a.play();if(p&&p.catch)p.catch(function(){tell('音频暂时无法播放，请稍后重试。');});}else a.pause();};
-            $('ls-seek').oninput=function(){var a=currentAudio();if(a&&isFinite(a.duration)&&a.duration>0)a.currentTime=Number(this.value)/1000*a.duration;};
-            $('ls-rate').onchange=function(){var a=currentAudio();if(a)a.playbackRate=Number(this.value);};
-            $('ls-submit').onclick=function(){if(mounted.submitting)return;if(mounted.payload&&mounted.frame.contentWindow.__listeningBridgeComplete){mounted.submitting=true;this.disabled=true;this.textContent='保存中…';mounted.frame.contentWindow.__listeningBridgeComplete({allowGenerated:true});return;}var b=findAction('submit');if(!b){tell('未找到提交按钮，请反馈此题名称。');return;}mounted.submitting=true;this.disabled=true;this.textContent='提交中…';b.click();setTimeout(function(){if(mounted.submitting&&!mounted.payload){mounted.submitting=false;$('ls-submit').disabled=false;$('ls-submit').textContent='提交答案';}},2500);};
+            $('ls-seek').oninput=function(){if(mounted.options.examListening)return;var a=currentAudio();if(a&&isFinite(a.duration)&&a.duration>0)a.currentTime=Number(this.value)/1000*a.duration;};
+            $('ls-rate').onchange=function(){if(mounted.options.examListening)return;var a=currentAudio();if(a)a.playbackRate=Number(this.value);};
+            $('ls-submit').onclick=function(){if(mounted.submitting)return;if(mounted.payload&&mounted.frame.contentWindow.__listeningBridgeComplete){mounted.submitting=true;this.disabled=true;this.textContent='保存中…';mounted.frame.contentWindow.__listeningBridgeComplete({allowGenerated:true});return;}var b=findAction('submit');if(!b){tell('未找到提交按钮，请反馈此题名称。');return;}mounted.submitting=true;this.disabled=true;this.textContent='提交中…';if(mounted.options.submitPart){mounted.options.submitPart(b);}else{b.click();}setTimeout(function(){if(mounted.submitting&&!mounted.payload){mounted.submitting=false;$('ls-submit').disabled=false;$('ls-submit').textContent='提交答案';}},2500);};
             mounted.interval=global.setInterval(refresh,500);
         }
-        mounted.options=options;mounted.saved=false;mounted.payload=null;mounted.submitting=false;mounted.questions=[];mounted.audio=null;
+        mounted.options=options;
+        if (options.examListening) restrictExamMedia(inner);
+        doc.getElementById('ls-rate').hidden=!!options.examListening;
+        doc.getElementById('ls-rate').disabled=!!options.examListening;
+        mounted.saved=false;mounted.payload=null;mounted.submitting=false;mounted.questions=[];mounted.audio=null;
         doc.getElementById('ls-candidate').textContent=options.candidateCode;
         var filename='';try{filename=decodeURIComponent(new URL(inner.URL).pathname.split('/').pop()).replace(/\.html?$/i,'').replace(/^\d+[.\s-]+(?:P[1-4]\s*)?/i,'');}catch(_){}
         doc.getElementById('ls-title').textContent=filename&&!/^(index|test|practice)$/i.test(filename)?filename:(inner.title.replace(/^IELTS\s+Listening\s*(Practice|Simulator)?\s*[-—·:]?\s*/i,'')||'Listening practice');
@@ -78,6 +82,28 @@
         var pattern={submit:/^(finish|submit(?: answers)?|check answers|提交|完成)$/i,reset:/^(clear|reset|重置|清空)$/i,transcript:/^(?:📄\s*)?(?:show |hide )?transcript$/i}[kind];
         return buttons.find(function(b){return pattern.test(text(b));});
     }
+    function restrictExamMedia(d) {
+        if (d.getElementById('ls-exam-media-rules')) return;
+        const style = d.createElement('style');
+        style.id = 'ls-exam-media-rules';
+        style.textContent = 'body :is(audio,[id*="transcript" i],[class*="transcript" i],#trans-trigger,#transBtn,#tToggle,#trans-panel,.progress-bar,input[type="range"]){display:none!important}body #right-pane,body #splitter,body #main-shell.split-view #right-pane,body #main-shell.split-view #splitter{display:none!important}body #main-shell.split-view #left-pane{flex-basis:100%!important;width:100%!important;max-width:none!important}';
+        d.head.append(style);
+        const times = new WeakMap();
+        d.addEventListener('timeupdate', event => {
+            const audio = event.target;
+            if (audio.tagName === 'AUDIO' && !audio.seeking) times.set(audio, audio.currentTime);
+        }, true);
+        d.addEventListener('seeking', event => {
+            const audio = event.target;
+            if (audio.tagName !== 'AUDIO') return;
+            const position = times.get(audio) || 0;
+            if (Math.abs(audio.currentTime - position) > 0.05) audio.currentTime = position;
+        }, true);
+        d.addEventListener('ratechange', event => {
+            const audio = event.target;
+            if (audio.tagName === 'AUDIO' && audio.playbackRate !== 1) audio.playbackRate = 1;
+        }, true);
+    }
     function currentAudio(){var d=mounted.frame.contentDocument;return Array.from(d.querySelectorAll('audio')).find(function(a){var p=a.closest('.test-page');return !p||getComputedStyle(p).display!=='none';})||d.querySelector('audio');}
     function normalizeContent(d){
         if(d.getElementById('listening-common-content-style'))return;
@@ -97,8 +123,8 @@
           body.listening-shared-content :where(.instructions,.instruction,.inst-box,.instruction-box){padding:12px 14px!important;margin:0 0 16px!important;border:1px solid #e5e7eb!important;border-radius:3px!important;background:#f7f7f7!important;box-shadow:none!important;font-size:15px!important;line-height:1.6!important}
           body.listening-shared-content :where(.drag-pool,.option-pool,.options-pool){display:flex!important;flex-wrap:wrap!important;gap:8px!important;padding:12px!important;background:#fafafa!important;border:1px solid #ddd!important;border-radius:3px!important}
           body.listening-shared-content :where(.drag-option,.drag-item,.draggable-word,.tag){display:inline-flex!important;align-items:center!important;min-height:38px!important;padding:7px 12px!important;background:#fff!important;color:#222!important;border:1px solid #aaa!important;border-radius:3px!important;box-shadow:none!important;font-size:15px!important;line-height:1.4!important}
-          body.listening-shared-content :where(.match-slot,.drop-slot,.drop-zone,.dropzone,.answer-slot,[data-drop-zone]){min-height:38px!important;min-width:74px!important;border:1px dashed #9ca3af!important;border-radius:3px!important;background:#fafafa!important;box-shadow:none!important}
-          body.listening-shared-content :where(.match-slot,.drop-slot,.drop-zone,.dropzone,.answer-slot,[data-drop-zone]).drag-over{border-color:#2563eb!important;background:#eaf2ff!important}
+          body.listening-shared-content :where(.match-slot,.flowchart-slot,.drop-slot,.drop-zone,.dropzone,.answer-slot,[data-drop-zone]){min-height:38px!important;min-width:74px!important;border:1px dashed #9ca3af!important;border-radius:3px!important;background:#fafafa!important;box-shadow:none!important}
+          body.listening-shared-content :where(.match-slot,.flowchart-slot,.drop-slot,.drop-zone,.dropzone,.answer-slot,[data-drop-zone]).drag-over{border-color:#2563eb!important;background:#eaf2ff!important}
           body.listening-shared-content :where(label:has(input[type=radio]),label:has(input[type=checkbox])){display:block;padding:8px 10px;margin:5px 0;border:1px solid #e5e7eb;border-radius:3px;background:#fff;line-height:1.5}
           body.listening-shared-content .ls-review-correct{outline:2px solid #2e7d32!important}body.listening-shared-content .ls-review-incorrect{outline:2px solid #c62828!important}body.listening-shared-content .ls-review-highlight{background:#ffed9b!important;color:inherit!important}
           body.listening-shared-content .bottom-nav,body.listening-shared-content .controls-bar,body.listening-shared-content .control-bar,body.listening-shared-content #bottomBar,body.listening-shared-content #dotsContainer,body.listening-shared-content .audio-container,body.listening-shared-content .audio-wrapper,body.listening-shared-content #practice-diagnostics-access{display:none!important}
@@ -118,9 +144,9 @@
             if(reviewRequested)return;
             if(suppressClick){suppressClick=false;e.preventDefault();e.stopPropagation();return;}
             var source=e.target.closest('.drag-option,.drag-item,.draggable-word,.drag-word,.tag,[draggable="true"]');
-            var target=e.target.closest('.match-slot,.drop-slot,.drop-zone,.dropzone,.answer-slot,[data-drop-zone],.drag-pool');
+            var target=e.target.closest('.match-slot,.flowchart-slot,.drop-slot,.drop-zone,.dropzone,.answer-slot,[data-drop-zone],.drag-pool,.flowchart-pool');
             if(source){
-                if(!source.closest('.drag-pool,.match-slot,.drop-slot,.drop-zone,.dropzone,.answer-slot,[data-drop-zone]'))return;
+                if(!source.closest('.drag-pool,.flowchart-pool,.match-slot,.flowchart-slot,.drop-slot,.drop-zone,.dropzone,.answer-slot,[data-drop-zone]'))return;
                 if(mounted.selectedDrag===source){source.classList.remove('ls-click-drag-selected');mounted.selectedDrag=null;return;}
                 if(mounted.selectedDrag)mounted.selectedDrag.classList.remove('ls-click-drag-selected');
                 mounted.selectedDrag=source;source.classList.add('ls-click-drag-selected');transfer=makeTransfer();send(source,'dragstart',transfer);e.preventDefault();return;
@@ -150,7 +176,7 @@
             ghost.style.left=(e.clientX+12)+'px';ghost.style.top=(e.clientY+12)+'px';
             d.querySelectorAll('.drag-over').forEach(function(el){el.classList.remove('drag-over');});
             var hit=d.elementFromPoint(e.clientX,e.clientY);
-            var target=hit&&hit.closest('.match-slot,.drop-slot,.drop-zone,.dropzone,.answer-slot,[data-drop-zone],.drag-pool');
+            var target=hit&&hit.closest('.match-slot,.flowchart-slot,.drop-slot,.drop-zone,.dropzone,.answer-slot,[data-drop-zone],.drag-pool,.flowchart-pool');
             if(target)target.classList.add('drag-over');
             for(var pane=hit;pane&&pane!==d.body;pane=pane.parentElement){
                 if(pane.scrollHeight>pane.clientHeight&&/auto|scroll/.test(d.defaultView.getComputedStyle(pane).overflowY)){
@@ -170,7 +196,7 @@
             if(active.moved&&!active.native){
                 suppressClick=true;setTimeout(function(){suppressClick=false;},0);
                 var hit=d.elementFromPoint(e.clientX,e.clientY);
-                var target=hit&&hit.closest('.match-slot,.drop-slot,.drop-zone,.dropzone,.answer-slot,[data-drop-zone],.drag-pool');
+                var target=hit&&hit.closest('.match-slot,.flowchart-slot,.drop-slot,.drop-zone,.dropzone,.answer-slot,[data-drop-zone],.drag-pool,.flowchart-pool');
                 if(target){var dt=makeTransfer();send(active.source,'dragstart',dt);send(target,'dragover',dt);send(target,'drop',dt);send(active.source,'dragend',dt);}
             }
             try{active.source.releasePointerCapture(e.pointerId);}catch(_){}
@@ -194,9 +220,9 @@
         if(!mounted)return;var d=mounted.frame.contentDocument;if(!d||!d.body)return;var doc=global.document,$=function(id){return doc.getElementById(id);};
         var diagnostics=doc.getElementById('practice-diagnostics-access');
         if(diagnostics&&diagnostics.parentNode!==mounted.settings){diagnostics.style.cssText='position:static;display:block;margin-top:12px';diagnostics.textContent='页面诊断日志';mounted.settings.appendChild(diagnostics);}
-        var a=currentAudio();$('ls-play').disabled=!a;$('ls-seek').disabled=!a||!isFinite(a.duration)||a.duration<=0;
+        var a=currentAudio();$('ls-play').disabled=!a||(mounted.options.examListening&&a.ended);$('ls-seek').disabled=mounted.options.examListening||!a||!isFinite(a.duration)||a.duration<=0;
         if(a){$('ls-play').textContent=a.paused?'播放':'暂停';$('ls-time').textContent=format(a.currentTime)+' / '+format(a.duration);if(doc.activeElement!==$('ls-seek'))$('ls-seek').value=isFinite(a.duration)&&a.duration>0?a.currentTime/a.duration*1000:0;}
-        ['notes','transcript'].forEach(function(k){$('ls-'+k).hidden=!findAction(k);});
+        ['notes','transcript'].forEach(function(k){$('ls-'+k).hidden=(mounted.options.examListening&&k==='transcript')||!findAction(k);});
         var entries=questionEntries(d),signature=entries.map(function(x){return x[0];}).join(',');mounted.questions=entries;
         if(mounted.signature!==signature){mounted.signature=signature;$('ls-nav').replaceChildren();entries.forEach(function(entry){var button=doc.createElement('button');button.type='button';button.textContent=entry[0];button.dataset.question=entry[0];button.onclick=function(){var current=mounted.questions.find(function(x){return x[0]===entry[0];});if(!current)return;var el=current[1][0];el.scrollIntoView({block:'center',behavior:'smooth'});if(el.matches('input,select,textarea'))el.focus({preventScroll:true});$('ls-nav').querySelectorAll('button').forEach(function(b){b.classList.toggle('active',b===button);});};$('ls-nav').appendChild(button);});}
         var count=0;entries.forEach(function(entry){var yes=isAnswered(entry[1]);if(yes)count++;var b=$('ls-nav').querySelector('[data-question="'+entry[0]+'"]');if(b)b.classList.toggle('answered',yes);});$('ls-count').textContent=count+' / '+entries.length+' 已答';
@@ -229,7 +255,7 @@
             if(el.type==='radio'||el.type==='checkbox'){var values=Array.isArray(value)?value:String(value).split(/[,;\s]+/);el.checked=values.map(String).includes(String(el.value));}
             else el.value=Array.isArray(value)?value.join(', '):String(value);
         });
-        d.querySelectorAll('.match-slot,.drop-slot,.drop-zone,.dropzone,.answer-slot').forEach(function(slot){
+        d.querySelectorAll('.match-slot,.flowchart-slot,.drop-slot,.drop-zone,.dropzone,.answer-slot').forEach(function(slot){
             var key=slot.dataset.q||slot.dataset.qid||slot.dataset.qnum||slot.getAttribute('name')||slot.id;
             var value=answers[key]??answers['q'+key]??answers[String(key).replace(/^q/,'')];
             if(value==null)return;

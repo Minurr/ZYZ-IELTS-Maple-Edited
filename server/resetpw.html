@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>重置密码 · IELTS Atlas</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f3f5f1;color:#19362c;font:16px system-ui,sans-serif;padding:24px}
+main{width:100%;max-width:430px;background:white;padding:40px;border-radius:22px;box-shadow:0 16px 70px #19362c12}
+h1{font-size:30px;margin:0 0 8px}p{color:#6a7770;line-height:1.7;font-size:14px;margin:0}
+label{display:block;margin:20px 0 7px;font-size:14px}
+input{width:100%;padding:13px;border:1px solid #d4ddd5;border-radius:9px;font:inherit}
+input:focus{outline:2px solid #65987c}
+button{cursor:pointer;width:100%;padding:14px;border:0;border-radius:9px;background:#245940;color:white;font:inherit;margin-top:24px}
+button:disabled{opacity:.6}
+#error{color:#b33434;min-height:22px;margin:16px 0 0}
+#ok{color:#245940;min-height:22px;margin:16px 0 0}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+<h1>重置密码</h1>
+<p id="intro">先验证维护账号，再为指定用户设置新密码。</p>
+
+<form id="gate">
+<label for="gate-user">用户名</label>
+<input id="gate-user" autocomplete="username" maxlength="80" required>
+<label for="gate-password">密码</label>
+<input id="gate-password" type="password" autocomplete="current-password" maxlength="128" required>
+<p id="gate-error" role="alert"></p>
+<button id="gate-submit" type="submit">进入</button>
+</form>
+
+<form id="reset" hidden>
+<label for="username">要重置的账号</label>
+<input id="username" autocomplete="off" maxlength="80" required>
+<label for="password">新密码</label>
+<input id="password" type="password" autocomplete="new-password" minlength="6" maxlength="128" required>
+<label for="confirm">再次输入新密码</label>
+<input id="confirm" type="password" autocomplete="new-password" minlength="6" maxlength="128" required>
+<p id="error" role="alert"></p>
+<p id="ok" role="status"></p>
+<button id="submit" type="submit">重置密码</button>
+</form>
+</main>
+<script>
+const el = id => document.getElementById(id);
+async function post(url, body) {
+    const response = await fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw Error(result.error || '操作失败');
+    return result;
+}
+el('gate').onsubmit = async event => {
+    event.preventDefault();
+    el('gate-submit').disabled = true;
+    el('gate-error').textContent = '';
+    try {
+        await post('/api/resetpw/auth', {username: el('gate-user').value, password: el('gate-password').value});
+        el('gate').hidden = true;
+        el('reset').hidden = false;
+        el('intro').textContent = '输入账号和新密码。重置后该账号需要重新登录。';
+    } catch (error) {
+        el('gate-error').textContent = error.message;
+    } finally {
+        el('gate-submit').disabled = false;
+    }
+};
+el('reset').onsubmit = async event => {
+    event.preventDefault();
+    el('submit').disabled = true;
+    el('error').textContent = '';
+    el('ok').textContent = '';
+    try {
+        const result = await post('/api/resetpw', {
+            username: el('username').value,
+            password: el('password').value,
+            confirmPassword: el('confirm').value
+        });
+        el('ok').textContent = '已重置「' + result.name + '」的密码。';
+        el('password').value = '';
+        el('confirm').value = '';
+    } catch (error) {
+        el('error').textContent = error.message;
+    } finally {
+        el('submit').disabled = false;
+    }
+};
+</script>
+</body>
+</html>

@@ -57,3 +57,17 @@ def install_feedback(app, db, user, is_admin, server_dir):
                  detail=row["detail"], name=row["name"])
             for row in rows
         ])
+
+    @app.post("/api/admin/feedback/delete")
+    def delete_admin_feedback():
+        if not is_admin():
+            return jsonify(error="仅管理员可以删除反馈"), 403
+        body = request.get_json(silent=True) or {}
+        feedback_id = body.get("id")
+        if type(feedback_id) is not int or feedback_id < 1:
+            return jsonify(error="反馈编号无效"), 400
+        with db() as con:
+            deleted = con.execute("DELETE FROM feedback WHERE id=?", (feedback_id,)).rowcount
+        if not deleted:
+            return jsonify(error="反馈已被删除或不存在"), 404
+        return jsonify(ok=True)

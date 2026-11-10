@@ -1,11 +1,20 @@
 (function () {
     'use strict';
+    const overview = document.getElementById('overview-view');
+    if (!overview) return;
+    let assigned = document.getElementById('assigned-work');
+    if (!assigned) {
+        assigned = document.createElement('div');
+        assigned.id = 'assigned-work';
+        overview.parentNode.insertBefore(assigned, overview);
+    }
+    const syncAssigned = () => { assigned.hidden = !overview.classList.contains('active'); };
+    new MutationObserver(syncAssigned).observe(overview, { attributes: true, attributeFilter: ['class'] });
+    syncAssigned();
     const host = document.createElement('section');
     host.id = 'published-exams';
     host.hidden = true;
-    const overview = document.getElementById('overview-view');
-    if (!overview) return;
-    overview.prepend(host);
+    assigned.append(host);
     const style = document.createElement('style');
     style.textContent = `
 #published-exams[hidden]{display:none}
@@ -14,11 +23,14 @@
 #published-exams article{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;margin:0 0 10px;padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.55)}
 #published-exams h3{margin:0 0 4px;font-size:16px}
 #published-exams p{margin:0;color:#3e5850}
-#published-exams button{border:0;border-radius:999px;padding:10px 16px;background:rgba(8,126,102,.92);color:#fff;cursor:pointer}
-#published-exams button[disabled]{background:rgba(154,171,180,.85);cursor:default}
+#published-exams .exam-pill{display:inline-block;margin-left:8px;padding:2px 9px;border-radius:999px;font-size:12px;background:#fff4df;color:#9a6b00;vertical-align:2px;font-weight:600}
+#published-exams button{background-image:none;border:1px solid rgba(255,255,255,.66);border-radius:var(--shui-radius-sm);padding:9px 18px;background:rgba(255,255,255,.44);color:#0f172a;cursor:pointer;font-size:13px;font-weight:600;letter-spacing:.02em;box-shadow:0 10px 24px rgba(15,23,42,.08);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);transition:background-color .2s ease,box-shadow .2s ease,transform .2s ease}
+#published-exams button:hover:not(:disabled){background:rgba(255,255,255,.52);transform:translateY(-1px);box-shadow:0 16px 30px rgba(15,23,42,.14)}
+#published-exams button[disabled]{background:rgba(255,255,255,.16);color:rgba(15,23,42,.42);border-color:rgba(255,255,255,.34);box-shadow:none;cursor:default;backdrop-filter:none;-webkit-backdrop-filter:none}
 #exam-sitting{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;background:#e7f1ec}
 #exam-sitting header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:rgba(255,255,255,.55);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%)}
 #exam-sitting iframe{flex:1;width:100%;min-height:0;border:0;background:#fff}
+#exam-sitting .exam-intermission{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f4f8f6;color:#22352b}#exam-sitting .exam-intermission h2{margin:0;font-size:24px}#exam-sitting iframe[hidden]{display:none!important}
 #exam-sitting .sheet{flex:1;min-height:0;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:24px}
 #exam-sitting .glass{width:min(720px,100%);margin:0 auto 24px;padding:28px;border-radius:28px;border:1px solid rgba(255,255,255,.62);background:rgba(255,255,255,.38);box-shadow:0 24px 54px rgba(15,23,42,.12);backdrop-filter:blur(24px) saturate(145%);-webkit-backdrop-filter:blur(24px) saturate(145%)}
 #exam-sitting .score{font-size:42px;margin:8px 0;font-variant-numeric:tabular-nums}
@@ -46,6 +58,7 @@
     }
     function reviewKey(id) { return 'ielts-exam-review:' + id; }
     function saveReview(id, papers) {
+        if (!id) return;
         try { localStorage.setItem(reviewKey(id), JSON.stringify(papers)); } catch (_) {}
     }
     function loadReview(id) {
@@ -65,7 +78,9 @@
             const mine = exam.mine || {};
             const article = document.createElement('article');
             const copy = node('div');
-            copy.append(node('h3', exam.title));
+            const title = node('h3', exam.title);
+            if (state === 'waiting') title.append(node('span', '未开始', 'exam-pill'));
+            copy.append(title);
             const kind = (exam.subject === 'reading' ? '阅读' : '听力') + ' · ' + (exam.mode === 'suite' ? '套题 ' + (exam.papers || []).length + ' 篇' : '散篇');
             let progress = '';
             if (exam.mode === 'suite' && mine.submitted && mine.submitted < mine.papers) progress = ' · 已交 ' + mine.submitted + '/' + mine.papers;
@@ -139,6 +154,12 @@
         const tick = () => {
             const frame = frameOf();
             if (!frame || !frame.isConnected || sitting?.scored) { clearInterval(timer); return; }
+            if (sitting?.intermission) return;
+            if (sitting?.exam.subject === 'listening') {
+                let receipt;
+                try { receipt = frame.contentWindow?.getPublishedListeningCompletion?.(); } catch (_) {}
+                if (receipt && finishPaper(receipt, frame.contentWindow)) return;
+            }
             const remaining = timeLeft(exam);
             if (remaining > 0) {
                 const clock = sitting?.bar.querySelector('[data-exam-clock]');
@@ -243,7 +264,7 @@
         const leave = node('button', '离开');
         const frame = document.createElement('iframe');
         sitting = { overlay, frame, bar, exam, papers: [], index: 0, queue: pending };
-        sitting.deadline = armDeadline(exam, () => frame);
+        sitting.deadline = armDeadline(exam, () => sitting?.frame);
         leave.onclick = () => {
             if (sitting.expired && !sitting.scored) { alert('正在保存考试作答，请等待保存成功后再离开。'); return; }
             if (sitting.papers.length < sitting.queue.length && !confirm('现在离开不会显示答案。已经交上的篇目会保留。')) return;
@@ -254,9 +275,31 @@
         overlay.append(bar, frame);
         document.body.append(overlay);
         setExamFloaters(true);
-        try { await overlay.requestFullscreen?.(); } catch (_) {}
+        try { overlay.requestFullscreen?.()?.catch(() => {}); } catch (_) {}
         loadPassage();
     }
+    const suiteButton = node('button', '开始听力套题 · Part 1–4', 'btn');
+    suiteButton.type = 'button';
+    assigned.append(suiteButton);
+    suiteButton.onclick = async () => {
+        if (sitting || suiteButton.disabled) return;
+        suiteButton.disabled = true;
+        try {
+            const manifest = Object.values(await listeningManifest());
+            const papers = [1, 2, 3, 4].map(part => {
+                const candidates = manifest.filter(entry => entry.hasHtml && entry.filename && entry.path.split('/')[0].toUpperCase() === 'P' + part);
+                if (!candidates.length) throw Error('Part ' + part + ' 暂无可用听力题');
+                const entry = candidates[Math.floor(Math.random() * candidates.length)];
+                return {id: entry.examId, title: entry.title, part};
+            });
+            const endAt = new Date(Date.now() + clockOffset + 40 * 60000).toISOString();
+            await beginSitting({id: '', subject: 'listening', mode: 'suite', title: '听力套题练习', endAt}, papers);
+        } catch (error) {
+            alert(error.message || '听力套题加载失败，请重试');
+        } finally {
+            suiteButton.disabled = false;
+        }
+    };
     function listeningManifest() {
         if (window.__LISTENING_EXAM_MANIFEST__) return Promise.resolve(window.__LISTENING_EXAM_MANIFEST__);
         if (!listeningManifest.promise) {
@@ -264,7 +307,7 @@
                 const script = document.createElement('script');
                 script.src = '/assets/generated/listening-exams/manifest.js';
                 script.onload = () => resolve(window.__LISTENING_EXAM_MANIFEST__ || {});
-                script.onerror = () => reject(new Error('听力题库没有加载'));
+                script.onerror = () => { listeningManifest.promise = null; script.remove(); reject(new Error('听力题库没有加载')); };
                 document.head.append(script);
             });
         }
@@ -278,7 +321,7 @@
             const entry = (await listeningManifest())[paper.id];
             if (!entry) { alert('这篇听力没有找到'); return; }
             const source = new URL('ListeningPractice/' + String(entry.path || '').replace(/^\/+/, '') + entry.filename, location.origin).href;
-            const params = new URLSearchParams({ examId: paper.id, sourceUrl: source, publishedHold: '1', publishedExam: sitting.exam.id || '' });
+            const params = new URLSearchParams({ examId: paper.id, sourceUrl: source, publishedHold: '1', v: 'exam86', publishedExam: sitting.exam.id || '' });
             sitting.frame.src = '/assets/generated/listening-exams/listening-practice-unified.html?' + params.toString();
             return;
         }
@@ -299,15 +342,47 @@
         if (event.origin !== location.origin) return;
         const data = event.data || {};
         if (data.type === 'PRACTICE_DIRECT_COMMITTED' && !sitting) setTimeout(refresh, 800);
-        if (data.type !== 'PUBLISHED_PASSAGE_DONE' || !sitting || sitting.advanced || event.source !== sitting.frame.contentWindow) return;
+        finishPaper(data, event.source);
+    });
+    function finishPaper(data, source) {
+        if (data.type !== 'PUBLISHED_PASSAGE_DONE' || !sitting?.queue || sitting.advanced || source !== sitting.frame.contentWindow) return false;
         const paper = sitting.queue[sitting.index];
         if (!paper || String(data.examId) !== String(paper.id)) return;
         sitting.advanced = true;
         sitting.papers.push({ id: paper.id, title: paper.title, correct: data.correct, total: data.total, rows: data.rows || [] });
         sitting.index += 1;
-        if (!sitting.expired && sitting.index < sitting.queue.length && timeLeft(sitting.exam) > 0) loadPassage();
+        if (!sitting.expired && sitting.index < sitting.queue.length && timeLeft(sitting.exam) > 0) {
+            const session = sitting;
+            const panel = node('section', null, 'exam-intermission');
+            panel.setAttribute('role','status');
+            const name = session.exam.subject === 'listening'
+                ? (n => 'Part ' + n)
+                : (n => '第 ' + n + ' 篇');
+            const next = session.queue[session.index];
+            panel.append(
+                node('h2', name(paper.part || session.index) + ' 已提交'),
+                node('p', '作答已保存，即将进入 ' + name(next.part || session.index + 1))
+            );
+            session.intermission = panel;
+            session.frame.hidden = true;
+            session.overlay.append(panel);
+            setTimeout(() => {
+                if (sitting !== session) return;
+                panel.remove();
+                session.intermission = null;
+                if (timeLeft(session.exam) <= 0) {
+                    saveReview(session.exam.id, session.papers); showScore(session.exam, session.papers); return;
+                }
+                const nextFrame = document.createElement('iframe');
+                session.frame.replaceWith(nextFrame);
+                session.frame = nextFrame;
+                loadPassage();
+            }, 1500);
+            return true;
+        }
         else { saveReview(sitting.exam.id, sitting.papers); showScore(sitting.exam, sitting.papers); }
-    });
+        return true;
+    }
     const observer = new MutationObserver(() => {
         if (document.getElementById('exam-sitting') || document.getElementById('embedded-practice-overlay')) return;
         setExamFloaters(false);

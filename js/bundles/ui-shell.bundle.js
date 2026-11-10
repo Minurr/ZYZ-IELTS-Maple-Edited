@@ -695,8 +695,7 @@ console.log('[DOM] DOM工具库已加载，统一事件委托、DOM创建和样�
             // display category/type/count. Keep their DOM (and focus) when the
             // displayed values are unchanged, including in-place index edits.
             const entries = stats?.reading || [];
-            const listeningEntries = (stats?.listening || []).filter((entry) => entry.total > 0);
-            const signature = JSON.stringify(entries.concat(listeningEntries).map((entry) => [
+            const signature = JSON.stringify(entries.map((entry) => [
                 String(entry.category), String(entry.type), String(entry.total)
             ]));
             const previous = this.lastRender;
@@ -717,12 +716,16 @@ console.log('[DOM] DOM工具库已加载，统一事件委托、DOM创建和样�
 
             fragment.appendChild(readingSection);
 
-            if (listeningEntries.length > 0) {
-                fragment.appendChild(this.createSection({
-                    title: '听力', icon: '🎧', entries: listeningEntries,
-                    style: { gridColumn: '1 / -1', marginTop: '28px' }
-                }));
-            }
+            // [DISABLED] 听力入口已禁用
+            // const listeningEntries = (stats?.listening || []).filter((entry) => entry.total > 0);
+            // if (listeningEntries.length > 0) {
+            //     fragment.appendChild(this.createSection({
+            //         title: '听力',
+            //         icon: '🎧',
+            //         entries: listeningEntries,
+            //         style: { gridColumn: '1 / -1', marginTop: '40px' }
+            //     }));
+            // }
 
             // [DISABLED] 听力练习 - 频率分类入口已禁用
             // const specialListeningEntries = (stats?.specialListening || []).filter((entry) => entry.total > 0);
@@ -5233,19 +5236,7 @@ function ensureSettings() {
     }
 
     function initLicenseModal() {
-        if (licenseModalInitialized) {
-            return licenseModalInitializationPromise || Promise.resolve();
-        }
-        licenseModalInitialized = true;
-        licenseModalInitializationPromise = hasAcceptedLicense().then(function (accepted) {
-            if (!accepted) {
-                showLicenseModal();
-            }
-        }).catch(function (error) {
-            console.error('[LicenseModal] Failed to load GPL license consent:', error);
-            showLicenseModal();
-        });
-        return licenseModalInitializationPromise;
+        return Promise.resolve();
     }
 
     global.LicenseModal = Object.assign({}, global.LicenseModal || {}, {
@@ -5623,14 +5614,14 @@ function ensureSettings() {
             for (i = 0; i < mutations.length; i++) {
                 var mutation = mutations[i];
                 if (mutation.type === 'characterData') {
-                    enqueue(mutation.target);
+                    replaceEmojiInTextNode(mutation.target);
                     continue;
                 }
                 if (mutation.type !== 'childList' || !mutation.addedNodes || !mutation.addedNodes.length) {
                     continue;
                 }
                 for (j = 0; j < mutation.addedNodes.length; j++) {
-                    enqueue(mutation.addedNodes[j]);
+                    walkAndReplace(mutation.addedNodes[j]);
                 }
             }
         });
@@ -5643,7 +5634,7 @@ function ensureSettings() {
     }
 
     function bootstrap() {
-        enqueue(document.body);
+        walkAndReplace(document.body);
         observeDynamicContent();
     }
 

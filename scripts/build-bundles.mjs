@@ -211,6 +211,7 @@ const bundles = {
         'js/data/v2/readingViewCache.js',
         'js/data/v2/appData.js',
         'js/utils/practiceTimerPreferences.js',
+        'js/listeningSharedShell.js',
         'js/listeningUnifiedWrapper.js'
     ],
     'js/bundles/vocabulary.bundle.js': [

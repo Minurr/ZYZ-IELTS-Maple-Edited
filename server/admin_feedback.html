@@ -2,6 +2,7 @@
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>问题反馈 · IELTS</title><script src="/account-bootstrap.js"></script>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f3f6f3;color:#172f2a;font:15px/1.6 system-ui,sans-serif}main{max-width:980px;margin:auto;padding:28px 18px}header{display:flex;justify-content:space-between;align-items:center;gap:12px}a{color:#087e66}article{background:white;border:1px solid #e1e9e4;border-radius:14px;padding:18px 20px;margin-top:14px}h2{margin:0 0 6px;font-size:18px}small{color:#70827b}.detail{white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 0}
+.actions{display:flex;justify-content:flex-end;margin-top:12px}.delete{border:1px solid #d9b4b4;background:#fff;color:#9b3030;border-radius:7px;padding:6px 12px;cursor:pointer}.delete:disabled{opacity:.55;cursor:wait}
 </style></head><body><main>
 <header><h1>问题反馈</h1><a href="/admindata">返回教师工作台</a></header>
 <p id="status" role="status">正在加载…</p>
@@ -9,10 +10,12 @@
 <script>
 const statusEl=document.getElementById('status'),list=document.getElementById('list');
 function text(value){return document.createTextNode(value==null?'':String(value));}
+let count=0;
 fetch('/api/admin/feedback',{headers:{'X-IELTS-User':window.IELTS_ACCOUNT&&IELTS_ACCOUNT.id||''},cache:'no-store'})
 .then(r=>r.json().then(d=>({ok:r.ok,d}))).then(({ok,d})=>{
   if(!ok)throw Error(d.error||'无法查看反馈');
   const items=d.items||[];
+  count=items.length;
   statusEl.textContent=items.length?`最近 ${items.length} 条`:'还没有反馈';
   for(const item of items){
     const card=document.createElement('article');
@@ -20,7 +23,19 @@ fetch('/api/admin/feedback',{headers:{'X-IELTS-User':window.IELTS_ACCOUNT&&IELTS
     const meta=document.createElement('small');
     meta.append(text(`${item.module} · ${item.name} · ${new Date(item.created*1000).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai'})}`));
     const detail=document.createElement('p');detail.className='detail';detail.append(text(item.detail));
-    card.append(title,meta,detail);list.append(card);
+    const actions=document.createElement('div');actions.className='actions';
+    const remove=document.createElement('button');remove.type='button';remove.className='delete';remove.textContent='删除';
+    remove.onclick=async()=>{
+      if(!confirm(`确认删除「${item.title}」这条反馈？`))return;
+      remove.disabled=true;remove.textContent='删除中…';
+      try{
+        const response=await fetch('/api/admin/feedback/delete',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-IELTS-User':window.IELTS_ACCOUNT?.id||''},body:JSON.stringify({id:item.id})});
+        const result=await response.json();
+        if(!response.ok)throw Error(result.error||'删除失败');
+        card.remove();count--;statusEl.textContent=count?`最近 ${count} 条`:'还没有反馈';
+      }catch(error){statusEl.textContent=error.message||'删除失败';remove.disabled=false;remove.textContent='重试删除';}
+    };
+    actions.append(remove);card.append(title,meta,detail,actions);list.append(card);
   }
 }).catch(error=>{statusEl.textContent=error.message||'加载失败';});
 </script></main></body></html>

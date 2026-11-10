@@ -8394,6 +8394,39 @@ body.blue-dark-mode .practice-settings-block__head .hero-panel__muted {
     display: none;
 }
 
+#settings-view .data-management-panel,
+:root[data-theme="blue"] #settings-view .data-management-panel,
+body.theme-blue #settings-view .data-management-panel{
+    border:1px solid rgba(255,255,255,.58);
+    border-radius:26px;
+    background:linear-gradient(155deg,rgba(255,255,255,.72),rgba(255,255,255,.38) 48%,rgba(255,255,255,.28)),rgba(248,250,252,.42);
+    box-shadow:0 28px 64px rgba(15,23,42,.14),0 8px 24px rgba(15,23,42,.06),inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(255,255,255,.25);
+    backdrop-filter:blur(28px) saturate(165%);
+    -webkit-backdrop-filter:blur(28px) saturate(165%);
+    color:#0f172a
+}
+.sample_school-king-list{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:10px}
+#settings-view .sample_school-king-list li{display:grid;grid-template-columns:2em minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 14px;border:1px solid rgba(255,255,255,.66);border-radius:18px;background:rgba(255,255,255,.44);color:#0f172a;box-shadow:0 10px 24px rgba(15,23,42,.08),inset 0 1px 0 rgba(255,255,255,.85);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%)}
+#settings-view .sample_school-king-list li.sample_school-king-empty{display:block;background:transparent;border:0;box-shadow:none;color:#475569}
+.sample_school-king-list b{font-variant-numeric:tabular-nums;color:#0f172a}
+.sample_school-king-list span small{display:block;margin-top:2px;color:#475569;font-size:12px}
+body.bloom-dark-mode #settings-view .data-management-panel,
+body.blue-dark-mode #settings-view .data-management-panel,
+body.theme-blue.blue-dark-mode #settings-view .data-management-panel{
+    border:1px solid rgba(255,255,255,.22);
+    background:linear-gradient(155deg,rgba(15,23,42,.62),rgba(15,23,42,.34) 52%,rgba(30,41,59,.28));
+    color:#f8fafc;
+    box-shadow:0 28px 64px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.18)
+}
+body.bloom-dark-mode #settings-view .sample_school-king-list li,
+body.blue-dark-mode #settings-view .sample_school-king-list li,
+body.theme-blue.blue-dark-mode #settings-view .sample_school-king-list li{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.12);color:#f8fafc;box-shadow:0 10px 24px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.2)}
+body.bloom-dark-mode #settings-view .sample_school-king-list b,
+body.blue-dark-mode #settings-view .sample_school-king-list b,
+body.theme-blue.blue-dark-mode #settings-view .sample_school-king-list b{color:#f8fafc}
+body.bloom-dark-mode #settings-view .sample_school-king-list span small,
+body.blue-dark-mode #settings-view .sample_school-king-list span small,
+body.theme-blue.blue-dark-mode #settings-view .sample_school-king-list span small{color:rgba(248,250,252,.72)}
 .update-log__list {
     list-style: none;
     margin: 16px 0 0;

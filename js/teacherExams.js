@@ -102,12 +102,12 @@
         if (filter) filter.hidden = on;
     }
     function pin() {
-        ['classHome', 'classDetailGrid', 'overviewView', 'chartView', 'backToClasses', 'studentNav'].forEach(id => { const el = $(id); if (el) el.hidden = true; });
+        ['classHome', 'classDetailGrid', 'overviewView', 'chartView', 'backToClasses', 'studentNav', 'writingView'].forEach(id => { const el = $(id); if (el) el.hidden = true; });
         setExamChrome(true);
         view.hidden = false;
         $('title').textContent = '考试管理';
         $('subtitle').textContent = '';
-        for (const id of ['overview', 'navReadingTypes', 'navListeningTypes', 'navPassage', 'navListeningPassage', 'navExams']) $(id)?.classList.toggle('active', id === 'navExams');
+        for (const id of ['overview', 'navReadingTypes', 'navListeningTypes', 'navPassage', 'navListeningPassage', 'navExams', 'navWriting']) $(id)?.classList.toggle('active', id === 'navExams');
     }
     function unpin() {
         open = false;
@@ -504,7 +504,7 @@
         try { await showList(); }
         catch (error) { view.replaceChildren(node('p', error.message || '考试管理加载失败', 'exam-empty')); }
     };
-    for (const id of ['overview', 'navReadingTypes', 'navListeningTypes', 'navPassage','navListeningPassage']) {
+    for (const id of ['overview', 'navReadingTypes', 'navListeningTypes', 'navPassage','navListeningPassage','navWriting']) {
         $(id)?.addEventListener('click', () => { if (open) unpin(); });
     }
     $('refresh')?.addEventListener('click', () => { if (open) setTimeout(pin, 0); });

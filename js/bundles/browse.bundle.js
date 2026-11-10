@@ -1114,11 +1114,11 @@ class VirtualScroller {
         var card = document.getElementById(this.ids.accuracyCard);
         if (!label || !meta || !value) return;
         if (this.accuracyMode === 'average') {
-            label.textContent = '阅读平均正确率';
-            meta.textContent = '阅读正式记录';
+            label.textContent = '平均正确率';
+            meta.textContent = '全部正式记录';
             value.textContent = formatPercentage(this.summary && this.summary.averageScore);
         } else {
-            label.textContent = '阅读加权正确率';
+            label.textContent = '加权平均正确率';
             if (this.accuracyExamType === 'listening') {
                 value.textContent = '—';
                 meta.textContent = '仅适用于阅读';
@@ -5223,7 +5223,7 @@ class VirtualScroller {
     'use strict';
 
    // 配置与常量
-   
+
     const preferredFirstExamByCategory = {
         'P1_reading': { id: 'p1-09', title: 'Listening to the Ocean 海洋探测' },
         'P2_reading': { id: 'p2-high-12', title: 'The fascinating world of attine ants 切叶蚁' },
@@ -5929,14 +5929,14 @@ class VirtualScroller {
             '<section class="suite-custom-selection__panel' + (isReady ? ' suite-custom-selection__panel--ready' : ' suite-custom-selection__panel--dock') + '" aria-live="polite">',
             '<header class="suite-custom-selection__header">',
             '<div>',
-            '<p class="suite-custom-selection__eyebrow">套题自选</p>', 
-            '<h3 class="suite-custom-selection__title-main">' + (isReady ? '确认开始或取消' : '继续选择下一题型') + '</h3>', 
+            '<p class="suite-custom-selection__eyebrow">套题自选</p>',
+            '<h3 class="suite-custom-selection__title-main">' + (isReady ? '确认开始或取消' : '继续选择下一题型') + '</h3>',
             '</div>',
             '<div class="suite-custom-selection__progress">' + selectedCount + ' / ' + categories.length + '</div>',
             '</header>',
             '<div class="suite-custom-selection__body">',
             '<div class="suite-custom-selection__group">',
-            '<div class="suite-custom-selection__group-title">已选</div>', 
+            '<div class="suite-custom-selection__group-title">已选</div>',
             selectedMarkup,
             '</div>',
             '<div class="suite-custom-selection__group">',
@@ -6067,7 +6067,7 @@ class VirtualScroller {
     }
 
    // 核心功能：加载与渲染
-   
+
     /**
      * 加载并渲染题库列表
      */
@@ -7384,6 +7384,8 @@ class VirtualScroller {
     console.log('[ExamActions] 模块已加载 (Phase 2)');
 
 })(typeof window !== 'undefined' ? window : this);
+
+
 /* ===== js/app/spellingErrorCollector.js ===== */
 /**
  * SpellingErrorCollector - 拼写错误收集组件
@@ -22388,27 +22390,11 @@ function updatePracticeView(recordsSnapshot = [], examIndexSnapshot = []) {
         ? stats.calculateSummary(records)
         : computePracticeSummaryFallback(records);
 
-    const typedRecords = { reading: [], listening: [] };
-    const examTypesById = new Map(examIndex.filter(Boolean).map(exam => [String(exam.id), normalizeRecordType(exam.type)]));
-    records.forEach(record => {
-        const type = normalizeRecordType(record && (record.type || record.examType || record.metadata?.type || record.realData?.type))
-            || examTypesById.get(String(record?.examId)) || 'reading';
-        if (typedRecords[type]) typedRecords[type].push(record);
-    });
-    const readingSummary = stats && typeof stats.calculateSummary === 'function'
-        ? stats.calculateSummary(typedRecords.reading) : computePracticeSummaryFallback(typedRecords.reading);
-    const listeningSummary = stats && typeof stats.calculateSummary === 'function'
-        ? stats.calculateSummary(typedRecords.listening) : computePracticeSummaryFallback(typedRecords.listening);
-    const listeningValue = document.getElementById('listening-avg-score');
-    const listeningMeta = document.getElementById('listening-accuracy-meta');
-    if (listeningValue) listeningValue.textContent = typedRecords.listening.length ? Math.round(listeningSummary.averageScore) + '%' : '—';
-    if (listeningMeta) listeningMeta.textContent = typedRecords.listening.length + ' 次听力练习';
-
     const dashboard = ensurePracticeDashboardView();
     if (dashboard) {
-        dashboard.updateSummary({ ...summary, averageScore: readingSummary.averageScore });
+        dashboard.updateSummary(summary);
     } else {
-        applyPracticeSummaryFallback({ ...summary, averageScore: readingSummary.averageScore });
+        applyPracticeSummaryFallback(summary);
     }
 
     // --- 3. Filter and Render History List ---
@@ -22486,7 +22472,7 @@ function updatePracticeView(recordsSnapshot = [], examIndexSnapshot = []) {
     queuePracticeInsightsRender([
         () => {
             if (dashboard && typeof dashboard.updateAccuracy === 'function') {
-                dashboard.updateAccuracy(typedRecords.reading, 'reading');
+                dashboard.updateAccuracy(records, examType);
             }
         },
         () => {

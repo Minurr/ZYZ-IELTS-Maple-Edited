@@ -3002,6 +3002,8 @@
     // Data is loaded by open()/notebook mount, never by script evaluation.
 
 })(typeof window !== 'undefined' ? window : globalThis);
+
+
 /* ===== bundle provided script markers ===== */
 (function markBundleProvided(global) {
     if (global.AppLazyLoader && typeof global.AppLazyLoader.markProvided === "function") {

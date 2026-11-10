@@ -18,7 +18,9 @@ import time
 
 from contextlib import contextmanager
 
-from teacher_data import aggregate
+from datetime import datetime, timedelta, timezone
+
+from teacher_data import aggregate, day
 
 from name_policy import blocked_display_text
 
@@ -116,13 +118,13 @@ def school_profile(body):
 
         grade, classroom = body.get('grade'), body.get('className')
 
-        if grade in ('Pre', 'English Dept.'): return school, '示例学校', grade, ''
+        if grade in ('Pre', 'English Dept.'): return school, '示例学校（sample_school）', grade, ''
 
         if grade not in ('Pre', 'G10', 'G11', 'G12', 'English Dept.') or not isinstance(classroom, str) or classroom not in tuple(str(i) for i in range(1, 10)):
 
             raise ValueError('请选择年级和班级（1～9 班）')
 
-        return school, '示例学校', grade, classroom
+        return school, '示例学校（sample_school）', grade, classroom
 
     if school == 'other':
         raise ValueError('自定义学校已关闭，请选择示例学校')
@@ -275,7 +277,7 @@ def protect():
 
             return jsonify(error="请求格式无效"), 400
 
-    if request.path in ("/health", "/api/health", "/login", "/api/access", "/api/status", "/api/register", "/api/login"):
+    if request.path in ("/health", "/api/health", "/login", "/resetpw", "/api/access", "/api/status", "/api/register", "/api/login", "/api/resetpw", "/api/resetpw/auth"):
 
         return None
 
@@ -343,6 +345,64 @@ def login_page():
 
 
 
+RESET_USER = os.environ.get('IELTS_RESET_USER', '')
+RESET_PASSWORD = os.environ.get('IELTS_RESET_PASSWORD', '').encode()
+
+
+def reset_ok():
+    try:
+        return signer.loads(request.cookies.get("ielts_reset", ""), max_age=1800) == "reset"
+    except BadSignature:
+        return False
+
+
+@app.get("/resetpw")
+def reset_page():
+    return send_from_directory(ROOT / "server", "resetpw.html")
+
+
+@app.post("/api/resetpw/auth")
+def reset_auth():
+    if limited():
+        return jsonify(error="尝试次数过多，请 10 分钟后再试"), 429
+    body = request.json or {}
+    name, password = body.get("username", ""), body.get("password", "")
+    if not isinstance(name, str) or not isinstance(password, str):
+        return jsonify(error="账号或密码格式错误"), 400
+    name_ok = hmac.compare_digest(name.strip().casefold().encode(), RESET_USER.encode())
+    password_ok = hmac.compare_digest(password.encode(), RESET_PASSWORD)
+    if not RESET_USER or not RESET_PASSWORD or not name_ok or not password_ok:
+        limited(record=True)
+        return jsonify(error="账号或密码不正确"), 401
+    response = jsonify(ok=True)
+    response.set_cookie("ielts_reset", signer.dumps("reset"), max_age=1800,
+                        httponly=True, secure=SECURE, samesite="Lax")
+    return response
+
+
+@app.post("/api/resetpw")
+def reset_password():
+    if not reset_ok():
+        return jsonify(error="请先验证维护账号"), 403
+    body = request.json or {}
+    name, password, confirm = body.get("username", ""), body.get("password", ""), body.get("confirmPassword", "")
+    if not isinstance(name, str) or not isinstance(password, str) or not isinstance(confirm, str):
+        return jsonify(error="账号或密码格式错误"), 400
+    name = name.strip()
+    if not 1 <= len(name) <= 80 or not 6 <= len(password) <= 128:
+        return jsonify(error="账号需为 1–80 字，新密码需为 6–128 字"), 400
+    if password != confirm:
+        return jsonify(error="两次输入的密码不一致"), 400
+    with db() as con:
+        row = con.execute("SELECT id, name FROM users WHERE name_key=?", (name.casefold(),)).fetchone()
+        if not row:
+            return jsonify(error="没有这个账号"), 404
+        con.execute("UPDATE users SET password=? WHERE id=?", (generate_password_hash(password), row["id"]))
+        con.execute("DELETE FROM sessions WHERE user_id=?", (row["id"],))
+    return jsonify(ok=True, name=row["name"])
+
+
+
 
 
 @app.get("/api/status")
@@ -350,6 +410,148 @@ def login_page():
 def status():
 
     return jsonify(access=gate_ok(), user=user() if gate_ok() else None)
+
+
+
+
+
+def passage_kind(data):
+
+    raw = " ".join(str(data.get(key) or "") for key in ("type", "examType", "practiceType", "pageType")).lower()
+
+    meta = data.get("metadata") if isinstance(data.get("metadata"), dict) else {}
+
+    raw += " " + str(meta.get("type") or meta.get("examType") or "").lower()
+
+    exam = str(data.get("examId") or "").lower()
+
+    if "listen" in raw or "听力" in raw or exam.startswith("listening"):
+
+        return "listening"
+
+    if "read" in raw or "阅读" in raw or exam.startswith("p") or "reading" in exam:
+
+        return "reading"
+
+    return ""
+
+
+
+
+
+def in_this_week(data):
+
+    stamped = day(data)
+
+    if not stamped:
+
+        return False
+
+    now = datetime.now(timezone(timedelta(hours=8)))
+
+    start = (now - timedelta(days=now.weekday())).date()
+
+    end = start + timedelta(days=7)
+
+    try:
+
+        current = datetime.fromisoformat(stamped).date()
+
+    except ValueError:
+
+        return False
+
+    return start <= current < end
+
+
+
+
+
+@app.get("/api/sample_school-ranking")
+
+def sample_school_ranking():
+
+    if not user():
+
+        return jsonify(error="请先登录"), 401
+
+    with db() as con:
+
+        rows = con.execute(
+
+            "SELECT u.name, p.grade, p.class_name, json_extract(s.data, '$.practiceSummaries') AS summaries "
+
+            "FROM users u JOIN profiles p ON p.user_id=u.id LEFT JOIN states s ON s.user_id=u.id "
+
+            "WHERE p.school=?",
+
+            ("sample_school",),
+
+        ).fetchall()
+
+    board = []
+
+    for row in rows:
+
+        try:
+
+            items = json.loads(row["summaries"] or "[]")
+
+        except (TypeError, json.JSONDecodeError):
+
+            continue
+
+        reading = listening = 0
+
+        for item in items if isinstance(items, list) else []:
+
+            data = item.get("data") if isinstance(item, dict) and isinstance(item.get("data"), dict) else item
+
+            if not isinstance(data, dict):
+
+                continue
+
+            kind = passage_kind(data)
+
+            if not kind:
+
+                continue
+
+            try:
+
+                total = int(data.get("totalQuestions") or 0)
+
+            except (TypeError, ValueError):
+
+                total = 0
+
+            if total <= 0 or not in_this_week(data):
+
+                continue
+
+            if kind == "listening":
+
+                listening += 1
+
+            else:
+
+                reading += 1
+
+        count = reading + listening
+
+        if count and str(row["name"] or "").strip().casefold() != "allen":
+
+            board.append(dict(name=row["name"], grade=row["grade"] or "", className=row["class_name"] or "", reading=reading, listening=listening, count=count))
+
+    board.sort(key=lambda item: (-item["count"], item["name"]))
+
+    top = board[:3]
+
+    for index, item in enumerate(top, 1):
+
+        item["rank"] = index
+
+    return jsonify(rows=top)
 
 
 
@@ -829,7 +1031,7 @@ def static_file(filename="index.html"):
 
         text = target.read_text(encoding="utf-8")
 
-        version = "20261103-submit-speed-42"
+        version = "20261109-author"
 
         text = re.sub(r'(<script\b[^>]*\bsrc=["\'])([^"\']+\.js)(["\'])',
 
@@ -906,6 +1108,10 @@ register_selection_notes(app, db, user)
 from exam_publish import install_exams
 
 install_exams(app, is_admin, user, DATA, ROOT, db)
+
+from writing_publish import install_writing
+
+install_writing(app, is_admin, user, DATA)
 
 from account_admin import install_account_admin
 install_account_admin(app, db, user, is_admin, school_profile, limited)

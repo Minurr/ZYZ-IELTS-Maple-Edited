@@ -114,12 +114,18 @@ body.hero-body {
     height: 80% !important;
 }
 
+@font-face{font-family:"Geist Pixel Square";src:url("../assets/fonts/geist-pixel/GeistPixel-Square.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"Geist Pixel Grid";src:url("../assets/fonts/geist-pixel/GeistPixel-Grid.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"Geist Pixel Circle";src:url("../assets/fonts/geist-pixel/GeistPixel-Circle.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"Geist Pixel Triangle";src:url("../assets/fonts/geist-pixel/GeistPixel-Triangle.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"Geist Pixel Line";src:url("../assets/fonts/geist-pixel/GeistPixel-Line.woff2") format("woff2");font-display:swap}
 .hero-brand-text {
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    font-size: clamp(2.45rem, 5.2vw, 4.35rem);
-    font-weight: 800;
+    display: inline-flex;
+    align-items: baseline;
+    font-size: clamp(2.85rem, 6vw, 5rem);
+    font-weight: 500;
     line-height: 0.96;
-    letter-spacing: -0.025em;
+    letter-spacing: 0.04em;
     color: #08172f;
     text-shadow:
         0 1px 1px rgba(255, 255, 255, 0.8),
@@ -127,6 +133,13 @@ body.hero-body {
         0 2px 4px rgba(15, 23, 42, 0.12),
         0 18px 40px rgba(15, 23, 42, 0.16);
 }
+.pixel-heading .px{font-weight:500;-webkit-text-stroke:0.045em currentColor;paint-order:stroke fill}
+.pixel-heading .px[data-font="0"]{font-family:"Geist Pixel Square",ui-monospace,monospace}
+.pixel-heading .px[data-font="1"]{font-family:"Geist Pixel Grid",ui-monospace,monospace}
+.pixel-heading .px[data-font="2"]{font-family:"Geist Pixel Circle",ui-monospace,monospace}
+.pixel-heading .px[data-font="3"]{font-family:"Geist Pixel Triangle",ui-monospace,monospace}
+.pixel-heading .px[data-font="4"]{font-family:"Geist Pixel Line",ui-monospace,monospace}
+.pixel-heading .px-gap{width:0.35em}
 
 .hero-brand-subtitle {
     flex: 1 1 320px;
@@ -2829,12 +2842,31 @@ body.blue-dark-mode .external-backup-banner__dismiss {
     margin-bottom: 12px;
     transition: opacity 0.2s;
 }
+.settings-footer__line {
+    margin: 0;
+}
 .settings-footer__author {
     color: var(--shui-text-muted);
     text-decoration: none;
     font-size: 0.9em;
     transition: color 0.3s ease;
 }
+.settings-footer__author-hover { display: none; }
+.settings-footer__author:hover .settings-footer__author-rest { display: none; }
+.settings-footer__author:hover .settings-footer__author-hover { display: inline; }
+.settings-footer__permit {
+    margin-left: 12px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--shui-text-muted);
+    font: inherit;
+    font-size: 0.9em;
+    text-decoration: underline;
+    cursor: pointer;
+}
+#license-modal .lm-card { max-width: min(880px, calc(100% - 32px)); }
+#license-modal .lm-letter { display: block; width: 100%; height: auto; border-radius: 8px; }
 
 /* License modal feedback link */
 #license-modal .lm-body a.lm-warning {
