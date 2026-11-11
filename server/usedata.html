@@ -19,7 +19,19 @@
 <section class="panel wide"><h2>已发布考试</h2><p class="sub">删除后学生和教师端都不再看到这场考试。已经交过的练习记录仍保留。</p><div class="table-wrap" style="max-height:420px"><table><thead><tr><th>考试</th><th>科目</th><th>时间（北京时间）</th><th>状态</th><th></th></tr></thead><tbody id="exams"></tbody></table></div><p id="exam-status" class="status" role="status"></p></section>
 <section class="panel wide"><h2>今日服务请求</h2><p class="sub">仅统计经过应用后端的业务请求，不包含 Nginx 直接提供的图片、音频等静态资源；4xx 包括版本冲突及权限校验拒绝。</p><div class="table-wrap"><table><thead><tr><th>请求类型</th><th>请求数</th><th>服务错误 5xx</th><th>请求拒绝 4xx</th><th>平均处理时间</th><th>最长处理时间</th></tr></thead><tbody id="endpoints"></tbody></table></div></section>
 <p class="footnote">日活按账号去重，同一账号多设备计为一人。“近 5 分钟活跃”是请求时间估算，不等于当前正在做题人数。统计可能延迟数秒；练习记录删除后，历史练习趋势会相应变化。</p>
-</main>
+<section class="panel wide"><h2>教师操作记录</h2><button type="button" id="audit-refresh">刷新记录</button><div class="table-wrap"><table><thead><tr><th>时间</th><th>操作人</th><th>操作</th><th>对象</th><th>结果</th></tr></thead><tbody id="audit-rows"></tbody></table></div><button id="audit-more">加载更多</button><span role="status" id="audit-status"></span></section></main>
+<script>
+addEventListener('DOMContentLoaded',()=>{
+ const rows=document.getElementById('audit-rows'),more=document.getElementById('audit-more'),refresh=document.getElementById('audit-refresh'),status=document.getElementById('audit-status');
+ let before='';
+ async function load(reset){more.disabled=refresh.disabled=true;status.textContent='加载中…';
+ try{const session=await fetch('/api/status',{cache:'no-store'}).then(r=>r.json());const r=await fetch('/api/usage/teacher-audit?before='+(reset?'':before),{headers:{'X-IELTS-User':session.user?.id||''},cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error);if(reset)rows.replaceChildren();
+ for(const x of d.rows){const tr=rows.insertRow();for(const value of [new Date(x.stamp.replace(' ','T')+'Z').toLocaleString(),x.name,x.action,x.target||'—',x.status==null?'待确认':x.status<300?'成功':'失败 ('+x.status+')'])tr.insertCell().textContent=value;before=x.id}
+ more.hidden=d.rows.length<50;status.textContent=rows.children.length?'':'暂无操作记录';
+ }catch(e){status.textContent=e.message}finally{more.disabled=refresh.disabled=false}}
+ refresh.onclick=()=>load(true);more.onclick=()=>load(false);load(true);
+});
+</script>
 <script>
 (() => {
  const $=id=>document.getElementById(id), fmt=n=>new Intl.NumberFormat('zh-CN').format(n??0);
@@ -117,4 +129,4 @@
  load();
  loadExams().catch(error=>{$('exam-status').textContent=error.message||'考试列表读取失败';});
 })();
-</script><script src="/js/accountAdmin.js?v=20261104-admin63"></script></body></html>
+</script><script src="/js/accountAdmin.js?v=20261111-auth"></script></body></html>

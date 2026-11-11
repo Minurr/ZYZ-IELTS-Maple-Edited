@@ -467,6 +467,44 @@ def in_this_week(data):
 
 
 
+def counted_correct(data, total):
+
+    raw = data.get("correctAnswers")
+
+    if raw is None:
+
+        raw = data.get("correctAnswersCount")
+
+    try:
+
+        correct = int(raw) if raw is not None else None
+
+    except (TypeError, ValueError):
+
+        correct = None
+
+    if correct is None:
+
+        try:
+
+            accuracy = float(data.get("accuracy"))
+
+        except (TypeError, ValueError):
+
+            return 0
+
+        if accuracy > 1:
+
+            accuracy /= 100
+
+        correct = int(round(accuracy * total))
+
+    return max(0, min(total, correct))
+
+
+
+
+
 @app.get("/api/sample_school-ranking")
 
 def sample_school_ranking():
@@ -501,7 +539,7 @@ def sample_school_ranking():
 
             continue
 
-        reading = listening = 0
+        reading = listening = correct_total = question_total = 0
 
         for item in items if isinstance(items, list) else []:
 
@@ -537,11 +575,17 @@ def sample_school_ranking():
 
                 reading += 1
 
+            correct_total += counted_correct(data, total)
+
+            question_total += total
+
         count = reading + listening
 
         if count and str(row["name"] or "").strip().casefold() != "allen":
 
-            board.append(dict(name=row["name"], grade=row["grade"] or "", className=row["class_name"] or "", reading=reading, listening=listening, count=count))
+            accuracy = round(100 * correct_total / question_total) if question_total else None
+
+            board.append(dict(name=row["name"], grade=row["grade"] or "", className=row["class_name"] or "", reading=reading, listening=listening, count=count, accuracy=accuracy))
 
     board.sort(key=lambda item: (-item["count"], item["name"]))
 
@@ -933,13 +977,16 @@ def is_admin():
 
 
 
+from teacher_auth import install_teacher_auth
+can_teach = install_teacher_auth(app, db, user, is_admin, limited, ROOT / 'server')
+
 @app.get("/adminset")
 
 @app.get("/admindata")
 
 def admin_page():
 
-    if not is_admin():
+    if not can_teach():
 
         return "仅授权教师可以访问此页面。", 403
 
@@ -953,7 +1000,7 @@ def admin_page():
 
 def admin_data():
 
-    if not is_admin():
+    if not can_teach():
 
         return jsonify(error="仅管理员可以查看"), 403
 
@@ -1095,7 +1142,7 @@ install_feedback(app, db, user, is_admin, ROOT / "server")
 
 from teacher_data import install_class_charts
 
-install_class_charts(app, db, is_admin)
+install_class_charts(app, db, can_teach)
 
 from listening_vocab import register_listening_vocab
 
@@ -1107,11 +1154,11 @@ register_selection_notes(app, db, user)
 
 from exam_publish import install_exams
 
-install_exams(app, is_admin, user, DATA, ROOT, db)
+install_exams(app, can_teach, user, DATA, ROOT, db)
 
 from writing_publish import install_writing
 
-install_writing(app, is_admin, user, DATA)
+install_writing(app, can_teach, user, DATA)
 
 from account_admin import install_account_admin
 install_account_admin(app, db, user, is_admin, school_profile, limited)

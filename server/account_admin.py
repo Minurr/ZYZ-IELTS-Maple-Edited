@@ -49,6 +49,8 @@ def install_account_admin(app, db, user, is_admin, school_profile, limited):
                     if 'user_id' in columns:con.execute('DELETE FROM "'+safe+'" WHERE user_id=?',(uid,))
                 con.execute('DELETE FROM users WHERE id=?',(uid,))
             else:
+                if body['admin'] and uid not in protected() and not con.execute('SELECT 1 FROM admin_grants WHERE user_id=?',(uid,)).fetchone():
+                    return jsonify(error='请到教师授权页授予教师权限'),403
                 if uid==user()['id'] and not body['admin']:return jsonify(error='不能取消自己的后台权限'),400
                 if uid in protected() and not body['admin']:return jsonify(error='系统配置的管理员不能在此取消权限'),400
                 con.execute('INSERT INTO profiles VALUES(?,?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET school=excluded.school,school_name=excluded.school_name,grade=excluded.grade,class_name=excluded.class_name',(uid,*profile))
