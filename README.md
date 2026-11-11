@@ -1,6 +1,9 @@
 # ZYZ IELTS Maple Edited
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/Minurr/ZYZ-IELTS-Maple-Edited?label=Stars)](https://github.com/Minurr/ZYZ-IELTS-Maple-Edited/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/Minurr/ZYZ-IELTS-Maple-Edited?label=Forks)](https://github.com/Minurr/ZYZ-IELTS-Maple-Edited/forks)
+[![Last commit](https://img.shields.io/github/last-commit/Minurr/ZYZ-IELTS-Maple-Edited?label=Last%20commit)](https://github.com/Minurr/ZYZ-IELTS-Maple-Edited/commits/main/)
 
 基于 [IELTS-practice](https://github.com/sallowayma-git/IELTS-practice) 修改的自部署雅思练习网站。项目将阅读、听力练习与个人学习记录整合到同一网站，教师可发布阅读与听力考试、布置写作并逐篇批改，学生可通过精读、精听和写作反馈复盘。
 
